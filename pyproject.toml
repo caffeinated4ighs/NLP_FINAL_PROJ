@@ -1,0 +1,17 @@
+[project]
+name = "nlp-final-proj"
+version = "0.1.0"
+description = "RAG pipeline with BGE-M3 and Qwen"
+requires-python = ">=3.10"
+
+dependencies = [
+    "pymupdf",
+    "sentence-transformers",
+    "faiss-cpu",
+    "transformers",
+    "accelerate",
+    "bitsandbytes",
+    "gradio",
+    "torch",
+    "numpy"
+]
