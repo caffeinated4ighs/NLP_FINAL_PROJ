@@ -2,6 +2,7 @@ import torch
 import faiss
 import numpy as np
 import fitz  # PyMuPDF
+import time
 
 from pathlib import Path
 from sentence_transformers import SentenceTransformer
@@ -12,7 +13,7 @@ class RAGPipeline:
     def __init__(
         self,
         embedding_model_name="BAAI/bge-m3",
-        llm_model_name="Qwen/Qwen2.5-1.5B-Instruct",  # safer for EC2 testing
+        llm_model_name="Qwen/Qwen2.5-7B-Instruct",  # safer for EC2 testing
         chunk_size=700,
         chunk_overlap=120,
         top_k=5,
@@ -165,7 +166,14 @@ class RAGPipeline:
 
         return "\n\n".join(parts)
 
-    def generate(self, system_prompt, user_prompt, max_new_tokens=500):
+    def generate(self, system_prompt, user_prompt, max_new_tokens=180, benchmark=True):
+        if self.llm is None or self.tokenizer is None:
+            raise RuntimeError(
+                "LLM not loaded. Initialize RAGPipeline with load_llm=True."
+            )
+
+        start_total = time.perf_counter()
+
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -177,23 +185,48 @@ class RAGPipeline:
             add_generation_prompt=True,
         )
 
+        start_tokenize = time.perf_counter()
         inputs = self.tokenizer([text], return_tensors="pt").to(self.llm.device)
+        end_tokenize = time.perf_counter()
+
+        input_tokens = inputs.input_ids.shape[1]
+
+        start_generate = time.perf_counter()
 
         with torch.no_grad():
             output_ids = self.llm.generate(
                 **inputs,
                 max_new_tokens=max_new_tokens,
-                temperature=0.3,
-                do_sample=True,
+                do_sample=False,
+                pad_token_id=self.tokenizer.eos_token_id,
             )
 
+        end_generate = time.perf_counter()
+
         generated_ids = output_ids[0][len(inputs.input_ids[0]):]
+        output_tokens = len(generated_ids)
+
         response = self.tokenizer.decode(
             generated_ids,
             skip_special_tokens=True,
-        )
+        ).strip()
 
-        return response.strip()
+        end_total = time.perf_counter()
+
+        if benchmark:
+            gen_time = end_generate - start_generate
+            total_time = end_total - start_total
+            tokens_per_sec = output_tokens / gen_time if gen_time > 0 else 0
+
+            print("\n--- BENCHMARK ---")
+            print(f"Input tokens: {input_tokens}")
+            print(f"Output tokens: {output_tokens}")
+            print(f"Tokenization time: {end_tokenize - start_tokenize:.2f}s")
+            print(f"Generation time: {gen_time:.2f}s")
+            print(f"Total time: {total_time:.2f}s")
+            print(f"Tokens/sec: {tokens_per_sec:.2f}")
+
+        return response
 
     def answer(self, question):
         retrieved_chunks = self.retrieve(question)
@@ -201,7 +234,7 @@ class RAGPipeline:
 
         system_prompt = (
             "You are a coursework-grounded RAG assistant. "
-            "Answer only using the provided context. "
+            "Answer only using the provided PDF context. "
             "If the answer is not in the context, say you could not find it."
         )
 
@@ -215,7 +248,12 @@ Context:
 Answer clearly and concisely.
 """
 
-        return self.generate(system_prompt, user_prompt)
+        return self.generate(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            max_new_tokens=250,
+            benchmark=True,
+        )
 
     def summarize(self):
         retrieved_chunks = self.retrieve("Summarize the main topics in this coursework.")
