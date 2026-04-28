@@ -1,3 +1,9 @@
+[project]
+name = "nlp-final-proj"
+version = "0.1.0"
+description = "RAG pipeline with BGE-M3, Qwen, OCR, and video transcript support"
+requires-python = ">=3.10,<3.13"
+
 dependencies = [
     "pymupdf",
     "sentence-transformers",
