@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
 import {
   ArrowLeft,
   AlertCircle,
@@ -14,6 +12,7 @@ import {
   EyeOff,
 } from "lucide-react"
 
+import { MarkdownMath } from "@/components/markdown-math"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -61,14 +60,22 @@ function parseQuiz(raw: string): ParsedQuestion[] {
 
   const parsed = blocks.map((block) => {
     const numberMatch = block.match(/^(\d+)\.\s+/)
-    const questionMatch = block.match(/\*\*Question:\*\*\s*([\s\S]*?)(?=\n\s*\*\*Type:\*\*|\n\s*- [A-D]\)|\n\s*\*\*Answer:\*\*|$)/i)
+
+    const questionMatch = block.match(
+      /\*\*Question:\*\*\s*([\s\S]*?)(?=\n\s*\*\*Type:\*\*|\n\s*-\s*[A-D]\)|\n\s*\*\*Answer:\*\*|$)/i
+    )
+
     const typeMatch = block.match(/\*\*Type:\*\*\s*(.*)/i)
-    const answerMatch = block.match(/\*\*Answer:\*\*\s*([\s\S]*?)(?=\n\s*\*\*Source reference:\*\*|$)/i)
+
+    const answerMatch = block.match(
+      /\*\*Answer:\*\*\s*([\s\S]*?)(?=\n\s*\*\*Source reference:\*\*|$)/i
+    )
+
     const sourceMatch = block.match(/\*\*Source reference:\*\*\s*([\s\S]*)/i)
 
-    const choices = Array.from(block.matchAll(/^\s*-\s*([A-D]\)[\s\S]*?)$/gim)).map(
-      (match) => cleanMarkdownLabel(match[1])
-    )
+    const choices = Array.from(
+      block.matchAll(/^\s*-\s*([A-D]\)[\s\S]*?)$/gim)
+    ).map((match) => cleanMarkdownLabel(match[1]))
 
     return {
       number: numberMatch?.[1] || "",
@@ -300,9 +307,7 @@ export default function QuizPageClient() {
                 <CardContent className="space-y-4">
                   <div className="rounded-lg border bg-background p-4">
                     <div className="prose prose-zinc max-w-none dark:prose-invert">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {item.question}
-                      </ReactMarkdown>
+                      <MarkdownMath>{item.question}</MarkdownMath>
                     </div>
                   </div>
 
@@ -313,9 +318,9 @@ export default function QuizPageClient() {
                           key={choice}
                           className="rounded-lg border bg-muted/40 p-3 text-sm"
                         >
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {choice}
-                          </ReactMarkdown>
+                          <div className="prose prose-zinc max-w-none dark:prose-invert">
+                            <MarkdownMath>{choice}</MarkdownMath>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -342,9 +347,7 @@ export default function QuizPageClient() {
                     <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-950">
                       <div className="mb-2 font-semibold">Answer</div>
                       <div className="prose prose-zinc max-w-none">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {item.answer}
-                        </ReactMarkdown>
+                        <MarkdownMath>{item.answer}</MarkdownMath>
                       </div>
                     </div>
                   )}
@@ -375,9 +378,9 @@ export default function QuizPageClient() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <pre className="whitespace-pre-wrap rounded-lg bg-zinc-950 p-4 text-sm text-zinc-50">
-                {rawQuiz}
-              </pre>
+              <div className="prose prose-invert max-w-none rounded-lg bg-zinc-950 p-4 text-sm text-zinc-50">
+                <MarkdownMath>{rawQuiz}</MarkdownMath>
+              </div>
             </CardContent>
           </Card>
         )}

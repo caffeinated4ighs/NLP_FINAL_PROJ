@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
 import { ArrowLeft, AlertCircle, FileText, Loader2, RotateCcw } from "lucide-react"
 
+import { MarkdownMath } from "@/components/markdown-math"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -169,9 +168,7 @@ export default function SummaryPageClient() {
           <Card>
             <CardContent className="pt-6">
               <div className="prose prose-zinc max-w-none dark:prose-invert">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {summary}
-                </ReactMarkdown>
+                <MarkdownMath>{summary}</MarkdownMath>
               </div>
             </CardContent>
           </Card>

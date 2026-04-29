@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import remarkMath from "remark-math"
+import rehypeKatex from "rehype-katex"
+import "katex/dist/katex.min.css"
+
 import {
   CheckCircle2,
   AlertCircle,
@@ -13,6 +19,8 @@ import {
   HelpCircle,
   FileTextIcon,
   ExternalLink,
+  Send,
+  MessageSquare,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -26,6 +34,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Textarea } from "@/components/ui/textarea"
 
 type IndexedFile = {
   path: string
@@ -44,6 +53,11 @@ type StatusResponse = {
   error: string | null
 }
 
+type AskResponse = {
+  session_id: string
+  answer: string
+}
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000"
 
 export default function StatusPageClient() {
@@ -53,6 +67,11 @@ export default function StatusPageClient() {
   const [sessionId, setSessionId] = useState("")
   const [statusData, setStatusData] = useState<StatusResponse | null>(null)
   const [error, setError] = useState("")
+
+  const [question, setQuestion] = useState("")
+  const [answer, setAnswer] = useState("")
+  const [isAsking, setIsAsking] = useState(false)
+  const [askError, setAskError] = useState("")
 
   useEffect(() => {
     const fromUrl = searchParams.get("session_id")
@@ -124,6 +143,51 @@ export default function StatusPageClient() {
     )
   }
 
+  async function askRag() {
+    if (!sessionId) {
+      setAskError("Missing session_id.")
+      return
+    }
+
+    if (!question.trim()) {
+      setAskError("Enter a question first.")
+      return
+    }
+
+    setIsAsking(true)
+    setAskError("")
+    setAnswer("")
+
+    try {
+      const response = await fetch(`${API_BASE}/api/ask`, {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+          question: question.trim(),
+          top_k: 12,
+          source_contains: null,
+          modality: null,
+        }),
+      })
+
+      if (!response.ok) {
+        const message = await response.text()
+        throw new Error(message || "Ask request failed.")
+      }
+
+      const data: AskResponse = await response.json()
+      setAnswer(data.answer)
+    } catch (err) {
+      setAskError(err instanceof Error ? err.message : "Unknown ask error.")
+    } finally {
+      setIsAsking(false)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-muted/40 px-6 py-10">
       <div className="mx-auto max-w-4xl space-y-6">
@@ -178,7 +242,7 @@ export default function StatusPageClient() {
                 <CheckCircle2 className="h-4 w-4" />
                 <AlertTitle>Ready</AlertTitle>
                 <AlertDescription>
-                  Files are indexed. You can now open summary, quiz, or flashcards.
+                  Files are indexed. You can now query the coursework or open summary, quiz, and flashcards.
                 </AlertDescription>
               </Alert>
             )}
@@ -337,6 +401,101 @@ export default function StatusPageClient() {
             )}
           </CardContent>
         </Card>
+
+        {statusData?.ready && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-primary/10 p-3">
+                  <MessageSquare className="h-6 w-6 text-primary" />
+                </div>
+
+                <div>
+                  <CardTitle className="text-2xl">Ask the Coursework</CardTitle>
+                  <CardDescription>
+                    Query the indexed material using <code>POST /api/ask</code>.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              <Textarea
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                placeholder="Example: summarize the uploaded coursework"
+                className="min-h-32"
+              />
+
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={askRag}
+                  disabled={isAsking || !question.trim()}
+                >
+                  {isAsking ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Asking...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-4 w-4" />
+                      Ask RAG
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => setQuestion("summarize the uploaded coursework")}
+                  disabled={isAsking}
+                >
+                  Use summary prompt
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setQuestion("")
+                    setAnswer("")
+                    setAskError("")
+                  }}
+                  disabled={isAsking}
+                >
+                  Clear
+                </Button>
+              </div>
+
+              {askError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Ask request failed</AlertTitle>
+                  <AlertDescription className="whitespace-pre-wrap">
+                    {askError}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {answer && (
+                <Card className="bg-background">
+                  <CardHeader>
+                    <CardTitle className="text-base">Answer</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="prose prose-zinc max-w-none rounded-lg border bg-muted/40 p-4 text-sm leading-6 dark:prose-invert">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm, remarkMath]}
+                        rehypePlugins={[rehypeKatex]}
+                      >
+                        {answer}
+                      </ReactMarkdown>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </main>
   )
