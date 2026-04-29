@@ -127,12 +127,30 @@ class RAGPipeline:
             raise ValueError("No chunks created from data folder.")
 
         # Reassign global chunk IDs
-        for i, chunk in enumerate(all_chunks):
-            chunk.chunk_id = i
+        normalized_chunks = []
 
-        print(f"\nTotal chunks created: {len(all_chunks)}")
-        self.build_index_from_chunks(all_chunks)
-        
+        for i, chunk in enumerate(all_chunks):
+            if isinstance(chunk, dict):
+                chunk = RAGChunk(
+                    chunk_id=i,
+                    text=chunk.get("text", ""),
+                    source=chunk.get("source"),
+                    modality=chunk.get("modality", "unknown"),
+                    page=chunk.get("page"),
+                    block_type=chunk.get("block_type", "text"),
+                    start=chunk.get("start"),
+                    end=chunk.get("end"),
+                    metadata=chunk.get("metadata", {}),
+                )
+            else:
+                chunk.chunk_id = i
+
+            if chunk.text and chunk.text.strip():
+                normalized_chunks.append(chunk)
+
+            print(f"\nTotal chunks created: {len(normalized_chunks)}")
+            self.build_index_from_chunks(normalized_chunks)
+            
     def load_pdf_text_by_page(self, pdf_path: str) -> list[dict]:
         pdf_path_obj = Path(pdf_path)
 

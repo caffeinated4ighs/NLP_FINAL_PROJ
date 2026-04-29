@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 import cv2
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 from faster_whisper import WhisperModel
 
 from Code.scripts.document_ocr import DocumentOCR
@@ -23,7 +23,7 @@ class VideoIngestor:
         )
         self.ocr = DocumentOCR(lang="en")
         self.frame_interval_sec = frame_interval_sec
-
+        
     def extract_audio(self, video_path: str, out_dir: str = "data/processed/audio") -> str:
         out = Path(out_dir)
         out.mkdir(parents=True, exist_ok=True)
@@ -31,7 +31,18 @@ class VideoIngestor:
         audio_path = out / f"{Path(video_path).stem}.wav"
 
         clip = VideoFileClip(video_path)
-        clip.audio.write_audiofile(str(audio_path), codec="pcm_s16le", verbose=False, logger=None)
+
+        if clip.audio is None:
+            clip.close()
+            raise ValueError(f"No audio track found in video: {video_path}")
+
+        clip.audio.write_audiofile(
+            str(audio_path),
+            codec="pcm_s16le",
+            logger=None,
+        )
+
+        clip.close()
 
         return str(audio_path)
 
