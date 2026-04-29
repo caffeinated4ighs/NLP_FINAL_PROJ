@@ -31,7 +31,7 @@ class StatusResponse(BaseModel):
 class AskRequest(BaseModel):
     session_id: str
     question: str
-    top_k: int | None = None
+    top_k: int = Field(default=5, ge=1, le=20)
     source_contains: str | None = None
     modality: str | None = None
 
