@@ -1,3 +1,4 @@
+
 import fitz
 import faiss
 import torch
@@ -16,9 +17,7 @@ class RAGPipeline:
 
         self.llm = AutoModelForCausalLM.from_pretrained(
             model_name,
-            device_map="auto",
-            torch_dtype=torch.float16,
-            load_in_4bit=True
+            device_map="auto"
         )
 
         self.chunks = []

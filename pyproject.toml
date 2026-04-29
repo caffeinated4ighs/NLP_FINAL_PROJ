@@ -10,8 +10,6 @@ dependencies = [
     "faiss-cpu",
     "transformers",
     "accelerate",
-    "bitsandbytes",
     "gradio",
-    "torch",
     "numpy"
 ]
