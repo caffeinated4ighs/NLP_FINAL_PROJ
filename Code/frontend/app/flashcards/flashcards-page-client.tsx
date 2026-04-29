@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft, Brain, Loader2, AlertCircle, RotateCcw } from "lucide-react"
 
+import { MarkdownMath } from "@/components/markdown-math"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -138,7 +139,10 @@ export default function FlashcardsPageClient() {
     <main className="min-h-screen bg-muted/40 px-6 py-10">
       <div className="mx-auto max-w-5xl space-y-6">
         <div className="flex items-center justify-between gap-4">
-          <Button variant="outline" onClick={() => router.push(`/status?session_id=${sessionId}`)}>
+          <Button
+            variant="outline"
+            onClick={() => router.push(`/status?session_id=${sessionId}`)}
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to status
           </Button>
@@ -234,8 +238,8 @@ export default function FlashcardsPageClient() {
                     <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
                       Front
                     </div>
-                    <div className="rounded-lg border bg-background p-3 text-sm font-medium">
-                      {card.front}
+                    <div className="prose prose-zinc max-w-none rounded-lg border bg-background p-3 text-sm font-medium dark:prose-invert">
+                      <MarkdownMath>{card.front}</MarkdownMath>
                     </div>
                   </div>
 
@@ -245,8 +249,8 @@ export default function FlashcardsPageClient() {
                     <div className="mb-1 text-xs font-semibold uppercase text-muted-foreground">
                       Back
                     </div>
-                    <div className="rounded-lg bg-muted p-3 text-sm leading-6">
-                      {card.back}
+                    <div className="prose prose-zinc max-w-none rounded-lg bg-muted p-3 text-sm leading-6 dark:prose-invert">
+                      <MarkdownMath>{card.back}</MarkdownMath>
                     </div>
                   </div>
                 </CardContent>
@@ -264,9 +268,9 @@ export default function FlashcardsPageClient() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <pre className="whitespace-pre-wrap rounded-lg bg-zinc-950 p-4 text-sm text-zinc-50">
-                {rawFlashcards}
-              </pre>
+              <div className="prose prose-invert max-w-none rounded-lg bg-zinc-950 p-4 text-sm text-zinc-50">
+                <MarkdownMath>{rawFlashcards}</MarkdownMath>
+              </div>
             </CardContent>
           </Card>
         )}

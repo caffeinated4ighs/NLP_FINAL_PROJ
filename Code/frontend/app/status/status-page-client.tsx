@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import remarkMath from "remark-math"
+import rehypeKatex from "rehype-katex"
+import "katex/dist/katex.min.css"
+
 import {
   CheckCircle2,
   AlertCircle,
@@ -476,8 +482,13 @@ export default function StatusPageClient() {
                     <CardTitle className="text-base">Answer</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="whitespace-pre-wrap rounded-lg border bg-muted/40 p-4 text-sm leading-6">
-                      {answer}
+                    <div className="prose prose-zinc max-w-none rounded-lg border bg-muted/40 p-4 text-sm leading-6 dark:prose-invert">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm, remarkMath]}
+                        rehypePlugins={[rehypeKatex]}
+                      >
+                        {answer}
+                      </ReactMarkdown>
                     </div>
                   </CardContent>
                 </Card>
