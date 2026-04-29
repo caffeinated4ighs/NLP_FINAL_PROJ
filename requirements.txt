@@ -1,0 +1,52 @@
+# =========================
+# PyTorch GPU stack
+# Stable fallback for EC2 GPU/A10G with broad driver compatibility
+# =========================
+--index-url https://download.pytorch.org/whl/cu118
+--extra-index-url https://pypi.org/simple
+
+torch==2.6.0
+torchvision==0.21.0
+torchaudio==2.6.0
+
+# =========================
+# Core API/backend
+# =========================
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+pydantic==2.10.5
+
+# =========================
+# RAG / ML / embeddings
+# =========================
+transformers==4.48.1
+accelerate==1.3.0
+sentence-transformers==3.3.1
+faiss-cpu==1.9.0.post1
+safetensors==0.5.2
+huggingface-hub==0.27.1
+
+# =========================
+# PDF / document / media processing
+# =========================
+pymupdf==1.25.2
+Pillow==10.4.0
+
+# Optional but useful if you process video/audio later
+opencv-python-headless==4.11.0.86
+moviepy==2.1.2
+
+# =========================
+# Data / utilities
+# =========================
+numpy==1.26.4
+pandas==2.2.3
+scikit-learn==1.6.1
+tqdm==4.67.1
+requests==2.32.3
+
+# =========================
+# Frontend/demo support if still used
+# =========================
+gradio==5.12.0
