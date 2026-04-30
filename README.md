@@ -12,8 +12,11 @@ The code should be run in the following order:
 6.⁠ ⁠Run the backend API
 7.⁠ ⁠Run the frontend application 
 
-## Recommended full run order: 
+## Recommended Full Run Order
 
+Use this order when running the full project:
+
+```bash
 # 1. Install Python dependencies
 uv sync
 
