@@ -4,11 +4,12 @@ answer:
     Answer only using the provided context.
 
     The context may come from:
-    - text PDFs
-    - OCR from scanned PDFs
-    - OCR from standalone images
+    - normal PDF text
+    - OCR from scanned PDFs or images
+    - extracted tables
+    - figure captions or graph OCR
     - video transcripts
-    - OCR from sampled video frames
+    - video frame OCR
 
     If the answer is not in the context, say you could not find it.
 
@@ -19,10 +20,8 @@ answer:
     Context:
     {context}
 
-    Instructions:
-    - Answer clearly and concisely.
-    - Use only the provided context.
-    - When useful, mention source, page, timestamp, or modality.
+    Answer clearly and concisely.
+    When useful, mention source, page, timestamp, or modality.
 
 summary:
   system: |
@@ -52,55 +51,10 @@ quiz:
     Create a quiz from this context.
 
     Requirements:
-    - Number of questions: {num_questions}
-    - Difficulty: {difficulty}
-    - Mix MCQ and short-answer unless otherwise requested.
-    - Include the correct answer after every question.
-    - Include source, page, or timestamp when available.
+    - 8 questions
+    - Mix MCQ and short-answer
+    - Include answer key
+    - Mark each question easy, medium, or hard
 
     Context:
     {context}
-
-flashcards:
-  system: |
-    You are an academic flashcard generator.
-    Use only the provided coursework context.
-
-  user_template: |
-    Create flashcards from this context.
-
-    Requirements:
-    - Number of flashcards: {num_cards}
-    - Use concise front/back format.
-    - Prioritize definitions, formulas, processes, and core concepts.
-
-    Context:
-    {context}
-
-source_quiz_prep:
-  system: |
-    You are a quiz-prep assistant.
-    Use only the provided source context.
-    Return concise markdown.
-
-  user_template: |
-    Source path:
-    {source}
-
-    Context:
-    {context}
-
-    Break this source down for quiz preparation.
-
-    Rules:
-    - The Source column must be exactly this path: {source}
-    - Do not rename the source.
-    - Use only the provided context.
-    - Keep each cell concise.
-    - Return exactly one markdown table row for this source.
-
-    Return this exact table format:
-
-    | Source | Main topics | Key terms | Quiz prep notes |
-    |---|---|---|---|
-    | {source} | ... | ... | ... |
